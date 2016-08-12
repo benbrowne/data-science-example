@@ -1,7 +1,9 @@
 '''
 - reads from stdin
-- 'breaks the stream' when device or hour changes
-- performs some computation 
+- 'breaks the stream' when device or user defined time interval changes
+- interval to generate features over is defined by the shell argument
+- returns a dataframe to features.py
+- features are defined by the user in features.py
 
 data format:
  0	1420156760	drive_unit	{"torque": -0.025472679681420144, "temperature": 0.40841407648251765},
@@ -15,7 +17,7 @@ import json
 import time
 import numpy as np
 
-def feature_generator(input_stream=sys.stdin, output_stream=sys.stdout, interval=hour, func=np.mean,variable='torque'):
+def parse_data(features, input_stream=stdin, interval,variable='torque'):
 
 	#we'll use these to check for new hours or devices
 	previous_hour=previous_device_id='none'
