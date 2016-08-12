@@ -1,0 +1,17 @@
+ 1) DEFINE A FUNCTION THAT:
+ reads from an input_stream (default sys.stdin)
+ breaks the stream whenever the device_id changes
+ breaks the stream whenever hour changes
+ performs some computation on the device.hour
+ writes to an output_stream (default sys.stdout)
+ without loadin everythin into memory
+
+ 2) write the features to MySQL
+
+
+ (different modules: 3: data science 4: web-app)
+
+if __name__ == '__main__':
+	 argparse? (more modern equivalent)
+	 ... python generate_stream.py | python feature_extractor.py --input_stream sys.stdin --output_stream my_output.csv
+	main()
