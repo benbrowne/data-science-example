@@ -16,35 +16,34 @@ import sys
 import json
 import time
 import numpy as np
+import pandas as pd
 
-def parse_data(features, input_stream=stdin, interval,variable='torque'):
+def parse_data(time_interval, input_stream=stdin):
 
 	#we'll use these to check for new hours or devices
 	previous_hour=previous_device_id='none'
 	
 	#the place we're going to accumulate data until device or hour changes:
-	data_list=[]
+	data_list=pd.dataframe()
 
 	#start reading the data
 	for line in input_stream:
-		device_id,hour,data_type,data=line.strip('\n').split('\t')
+		device_id,epoch_time,data_type,data=line.strip('\n').split('\t')
 
-		#convert epoch time to hour of the day
-		hour=time.localtime(float(hour)).tm_hour
+		#read epoch time
+		epoch_time=float(epoch_time)
 
 		#convert our json string to a dictionary of data and append to our running list
-		data_list.append(json.loads(data)[variable])
+		data_list.append(json.loads(data))
 		
-		#check if time or device have changed and if so return our feature
+		#check if time or device have changed and if so return our feature and clear the data
 		if previous_hour!=hour or previous_device_id!=device_id:
 			print(func(data_list))
-
-			#wipe the data for a new time and/or device
-			data_list=[]
+			data_list=pd.dataframe()
 
 		#note the time and device for comparison with the next iteration
 		previous_device_id=device_id
-		previous_hour=hour
+		previous_hour=epoch_time.tm_hour
 
 
 feature_generator(variable='temperature',func=np.std)
