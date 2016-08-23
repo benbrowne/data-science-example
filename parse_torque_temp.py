@@ -17,36 +17,33 @@ import json
 import time
 import numpy as np
 import pandas as pd
-import features
+#import features
 
 def parse_stdin(stdin):
     """generator of lines of data from stdin strings"""
-    for line in stdin:
-        device_id,epoch_time,data_type,json_data=line.strip('\n').split('\t')
-        epoch_time=float(epoch_time)
-        json_data=json.loads(data)
-        torque=json_data['torque']
-        temperature=json_data['temperature']
-        yield (epoch_time,data_type,torque,temperature)
-
+    for index, line in enumerate(stdin):
+        device_id, epoch_time, data_type, json_data = line.strip('\n').split('\t')
+        epoch_time = float(epoch_time)
+        json_data = json.loads(json_data)
+        torque = json_data['torque']
+        temperature = json_data['temperature']
+        yield (pd.DataFrame({'device_id':device_id, 'epoch_time':epoch_time, 'data_type':data_type, 'torque':torque, 'temperature':temperature},index=[index]))    #how to do this more efficiently?
 
 # we'll use these to check for new hours or devices
-previous_hour=previous_device_id='none'
+previous_hour = previous_device_id = 'none'
 
-# the place we're going to accumulate data until device or hour changes:
-columns=['epoch_time','data_type','torque','temperature']
-#torque_temp_dataframe=pd.dataframe(columns=columns)
-
-def get_features(stdin):
-    # start reading the data
-    for row_of_data in parse_stdin(stdin):
-        hour = time.local_time(epoch_time).tm_hour
-        # check if time or device have changed and if so return features and clear the dataframe
-            if previous_hour != hour or previous_device_id!=device_id:
-                df = pd.DataFrame(data_list,column=columns)
-                yield {key:features.feature_input[key](df) for key in features.feature_input}
-            else data_list.append(row_of_data)
+# start reading the data
+for line_of_data in parse_stdin(sys.stdin):
+    hour = time.localtime(line_of_data.epoch_time).tm_hour
+    # check if time or device have changed and if so return features and clear the dataframe
+    if previous_hour != hour or previous_device_id != line_of_data.device_id:
+        if previous_hour != 'none':
+            # {key:features.feature_input[key](df) for key in features.feature_input}
+            print(df.torque.mean())
+        df = pd.DataFrame()
+    else:
+        df = pd.append(df, line_of_data)
 
     # note the time and device for comparison with the next iteration
-        previous_device_id=device_id
-        previous_hour=hour
+    previous_device_id = line_of_data.device_id
+    previous_hour = hour
