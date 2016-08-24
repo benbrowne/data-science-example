@@ -9,8 +9,6 @@ def the_99th_percentile_torque(df):
 def max_rate_of_change_of_torque(df):
 	return df.torque.diff().max()
 
-feature_input={
-'mean_torque':mean_torque, 
+feature_input = {'mean_torque':mean_torque,
 'the_99th_percentile_torque':the_99th_percentile_torque,
-'max_rate_of_change_of_torque':max_rate_of_change_of_torque
-'max_torque_in_upper_10pct_temperature':max_torque_in_upper_10pct_temperature }
+'max_rate_of_change_of_torque':max_rate_of_change_of_torque}
