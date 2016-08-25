@@ -28,23 +28,27 @@ def parse_stdin(stdin):
         temperature = json_data['temperature']
         yield ({'device_id':device_id, 'epoch_time':epoch_time, 'data_type':data_type, 'torque':torque, 'temperature':temperature})    #how to do this more efficiently?
 
-# we'll use these to check for new hours or devices
-previous_hour = previous_device_id = 'none'
+def main(stdin):
+    # we'll use these to check for new hours or devices
+    previous_hour = previous_device_id = 'none'
 
-# start reading the data
-for index, line_of_data in enumerate(parse_stdin(sys.stdin)):
-    hour = time.localtime(line_of_data['epoch_time']).tm_hour
-    device_id = line_of_data['device_id']
-    # check if time or device have changed and if so return features and clear the dataframe
-    if previous_hour != hour or previous_device_id != line_of_data['device_id']:
-        if previous_hour != 'none':
-            line_of_output={'hour':hour, 'device_id':device_id}
-            line_of_output.update({key:features.feature_input[key](df) for key in features.feature_input})
-            print(line_of_output)
-        df = pd.DataFrame()
-    else:
-        df = df.append(pd.DataFrame(line_of_data,index=[index]))
+    # start reading the data
+    for index, line_of_data in enumerate(parse_stdin(stdin)):
+        hour = time.localtime(line_of_data['epoch_time']).tm_hour
+        device_id = line_of_data['device_id']
+        # check if time or device have changed and if so return features and clear the dataframe
+        if previous_hour != hour or previous_device_id != line_of_data['device_id']:
+            if previous_hour != 'none':
+                line_of_output={'hour':hour, 'device_id':device_id}
+                line_of_output.update({key:features.feature_input[key](df) for key in features.feature_input})
+                print(line_of_output)
+            df = pd.DataFrame()
+        else:
+            df = df.append(pd.DataFrame(line_of_data,index=[index]))
 
-    # note the time and device for comparison with the next iteration
-    previous_device_id = device_id
-    previous_hour = hour
+        # note the time and device for comparison with the next iteration
+        previous_device_id = device_id
+        previous_hour = hour
+
+if __name__=='__main__':
+    main(sys.stdin)
