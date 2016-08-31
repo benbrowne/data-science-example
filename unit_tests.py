@@ -1,27 +1,38 @@
 import unittest
-import parse_torque_temp as ptt
+import parse_torque_temp
 import features
-
-Class TestFeatureExtractor(unittest.TestCase):
-	def setup(self):
-        data= \
-        "0	1420156760	drive_unit	{"torque": -0.025472679681420144, "temperature": 0.40841407648251765},\
-         0	1420156770	drive_unit	{"torque": 0.23807620959515494, "temperature": -1.1707010518041583},\
-         0	1420177780	drive_unit	{"torque": -0.08595670646206277, "temperature": 1.553783619625692},\
-         0	1420177790	drive_unit	{"torque": -0.9478755887865989, "temperature": 0.5052556076573897}"
-
-        expected_output = \
-        ""{'max_rate_of_change_of_torque': 4.0438910985332983, 'mean_torque': -0.042394730346960757, 'the_99th_percentile_torque': 2.1613366262627722, 'hour': 17, 'device_id': '0'}\
-        {'max_rate_of_change_of_torque': 3.9195023130293078, 'mean_torque': -0.093459251401254578, 'the_99th_percentile_torque': 2.3379620654780693, 'hour': 18, 'device_id': '0'}\
-        """
+import generate_stream
+import os
 
 
-	def test_parse_stdin(self):
-        self.assertEquals()
+class TestFeatureExtractor(unittest.TestCase):
 
-	#def test_get_features(self):
+    def setUp(self):
+        temp_file = open('temp_data.dat', 'r+')
+        data_generator = generate_stream.SimpleStreamGenerator({'device_count': 1, 'seconds_per_reading': 600,
+                                                                'day_count': 1, 'output_destination': temp_file})
+        data_generator.print_stream(1, 1)
+        self.example_raw_data = temp_file.readlines()
+        print(self.example_raw_data)
+
+    def test_parse_stdin_returns_dictionaries(self):
+        for line_of_data in parse_torque_temp.parse_stdin(self.example_raw_data):
+            self.assertIsInstance(eval(line_of_data), dict)
+
+    def test_parse_stdin_returns_expected_keys(self):
+        for line_of_data in parse_torque_temp.parse_stdin(self.example_raw_data):
+            self.assertEqual({'device_id', 'epoch_time', 'data_type', 'torque', 'temperature'}, set(eval(line_of_data).keys()))
+
+    def test_parse_stdin_returns_expected_length_of_data(self):
+        self.assertEqual(len(self.example_raw_data), 24*60*60/600)
+
+    # def test_generate_features(self):
+    #     self.assertEqual(expected_output, parse_torque_temp.main(data))
+    #     # def test_get_features(self):
+    #
+    # def tearDown(self):
+    #     os.remove('temp_data.dat')
 
 
-
-if __name__==__main__:
-	unittest.main()
+if __name__ == '__main__':
+    unittest.main()

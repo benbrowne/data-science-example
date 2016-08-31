@@ -34,7 +34,8 @@ class SimpleStreamGenerator(object):
         'field_delimiter': {'type': str, 'default': '\t'},
         'start_epoch': {'type':int, 'default': 1420070400},  # 2015-01-01 00:00:00"
         'seconds_per_reading': {'type': int, 'default': 10},
-        'data_type': {'type': str, 'default': 'drive_unit'}
+        'data_type': {'type': str, 'default': 'drive_unit'},
+        'output_destination': {'type': file, 'default': sys.stdout}
     }
 
     # pylint: disable=no-member
@@ -59,7 +60,6 @@ class SimpleStreamGenerator(object):
                              self.seconds_per_reading)
 
         # Additional (static) configuration
-        self.output_destination = sys.stdout  # could also be file('output.dat', 'w')
         self.data_keys = ['temperature', 'torque']
 
 
