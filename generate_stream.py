@@ -32,13 +32,13 @@ class SimpleStreamGenerator(object):
 
     template_configuration = {
         'field_delimiter': {'type': str, 'default': '\t'},
-        'start_epoch': {'type':int, 'default': 1420070400},  # 2015-01-01 00:00:00"
+        'start_epoch': {'type': int, 'default': 1420070400},  # 2015-01-01 00:00:00"
         'seconds_per_reading': {'type': int, 'default': 10},
         'data_type': {'type': str, 'default': 'drive_unit'}
     }
 
     # pylint: disable=no-member
-    def __init__(self, instance_configuration):
+    def __init__(self, instance_configuration, output_destination=sys.stdout):
         """
         Args:
             instance_configuration (dictionary): optionally override variables defined by
@@ -59,9 +59,8 @@ class SimpleStreamGenerator(object):
                              self.seconds_per_reading)
 
         # Additional (static) configuration
-        self.output_destination = sys.stdout  # could also be file('output.dat', 'w')
+        self.output_destination = output_destination
         self.data_keys = ['temperature', 'torque']
-
 
     def print_stream(self, device_count, day_count):
         """Print stream for all devices and days
