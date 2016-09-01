@@ -31,7 +31,7 @@ def parse_stdin(stdin):
                 'temperature': temperature})  # how to do this more efficiently?
 
 
-def main(stdin):
+def main(stdin, out_file=sys.stdout):
     # we'll use these to check for new hours or devices
     previous_hour = previous_device_id = 'none'
 
@@ -44,7 +44,7 @@ def main(stdin):
             if previous_hour != 'none':
                 line_of_output = {'hour': hour, 'device_id': device_id}
                 line_of_output.update({key: features.feature_input[key](df) for key in features.feature_input})
-                print(line_of_output)
+                print >> out_file, line_of_output
             df = pd.DataFrame()
         else:
             df = df.append(pd.DataFrame(line_of_data, index=[index]))
