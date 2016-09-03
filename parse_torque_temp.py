@@ -17,10 +17,11 @@ import json
 import time
 import pandas as pd
 import features
+import argparse
 
 
 def parse_stdin(stdin):
-    """generator of lines of data from stdin strings"""
+    """generator of a data dictionary from each string of raw data"""
     for line in stdin:
         device_id, epoch_time, data_type, json_data = line.strip('\n').split('\t')
         epoch_time = int(epoch_time)
@@ -31,18 +32,25 @@ def parse_stdin(stdin):
                 'temperature': temperature})  # how to do this more efficiently?
 
 
-def main(stdin, out_file=sys.stdout):
-    # we'll use these to check for new hours or devices
-    previous_hour = previous_device_id = 'none'
+def main(stdin, out_file=sys.stdout, interval='hour'):
+    """prints reduced features from raw data by sending dictionaries from parse_stdin to the 'features' module"""
+    # using these to check for new hours or devices
+    previous_interval = previous_device_id = 'none'
 
     # start reading the data
     for index, line_of_data in enumerate(parse_stdin(stdin)):
-        hour = time.localtime(line_of_data['epoch_time']).tm_hour
+
+        time_obj = time.localtime(line_of_data['epoch_time'])
+        if interval == 'hour':
+            current_interval = time_obj.tm_hour
+        elif interval == 'day':
+            current_interval = time_obj.tm_yday
+
         device_id = line_of_data['device_id']
-        # check if time or device have changed and if so return features and clear the dataframe
-        if previous_hour != hour or previous_device_id != line_of_data['device_id']:
-            if previous_hour != 'none':
-                line_of_output = {'hour': hour, 'device_id': device_id}
+        # check if hour/day or device have changed and if so return features and clear the dataframe
+        if previous_interval != current_interval or previous_device_id != line_of_data['device_id']:
+            if previous_interval != 'none':
+                line_of_output = {interval: current_interval, 'device_id': device_id}
                 line_of_output.update({key: features.feature_input[key](df) for key in features.feature_input})
                 print >> out_file, line_of_output
             df = pd.DataFrame()
@@ -51,8 +59,12 @@ def main(stdin, out_file=sys.stdout):
 
         # note the time and device for comparison with the next iteration
         previous_device_id = device_id
-        previous_hour = hour
+        previous_interval = current_interval
 
+def parse_cl_args():
+    parser = argparse.ArgumentParser(description='print dictionary of features from stream of torque and temperature data')
+    parser.add_argument('--interval', '-i', choices=['hour', 'day'], default='hour')
+    return parser.parse_args(sys.argv[1:]).interval
 
 if __name__ == '__main__':
-    main(sys.stdin)
+    main(sys.stdin, interval=parse_cl_args())

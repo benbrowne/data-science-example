@@ -1,6 +1,5 @@
 '''a list of functions that take a pandas dataframe'''
 
-
 def mean_torque(df):
     return df.torque.mean()
 
