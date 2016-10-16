@@ -1,0 +1,2 @@
+{'max_rate_of_change_of_torque': 5.97785665517228, 'mean_torque': -0.00081365204597115103, 'interval': 365, 'the_99th_percentile_torque': 2.2366266395708529, 'device_id': '0'}
+{'max_rate_of_change_of_torque': 5.97785665517228, 'mean_torque': 0.0013601477376603114, 'interval': 1, 'the_99th_percentile_torque': 2.2846602072787325, 'device_id': '0'}

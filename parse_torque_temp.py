@@ -25,9 +25,10 @@ import features
 
 
 class BaseFeatureExtractor(object):
+
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, interval_type, out_file):
+    def __init__(self, interval_type='hour', out_file='sys.stdout'):
         self.interval_type = interval_type
         self.out_file = out_file
 
@@ -53,7 +54,7 @@ class BaseFeatureExtractor(object):
                     data_block = data_block.append(pd.DataFrame.from_records([line]))
                 line_of_output = {'device_id': device_id, 'interval': interval}
                 line_of_output.update({key: features.feature_input[key](data_block) for key in features.feature_input})
-                print >> outfile, line_of_output
+                print >> self.out_file, line_of_output
 
 
 class CarFeatureExtractor(BaseFeatureExtractor):
