@@ -20,6 +20,7 @@ import sys
 import time
 
 import pandas as pd
+import pymysql
 
 import features
 
@@ -28,9 +29,12 @@ class BaseFeatureExtractor(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, interval_type='hour', out_file='sys.stdout'):
+    def __init__(self, interval_type='hour'):
         self.interval_type = interval_type
-        self.out_file = out_file
+
+    @abc.abstractproperty
+    def feature_class(self):
+        pass
 
     @abc.abstractmethod
     def get_deviceid(self, line):
@@ -54,10 +58,17 @@ class BaseFeatureExtractor(object):
                     data_block = data_block.append(pd.DataFrame.from_records([line]))
                 line_of_output = {'device_id': device_id, 'interval': interval}
                 line_of_output.update({key: features.feature_input[key](data_block) for key in features.feature_input})
-                print >> self.out_file, line_of_output
+                yield line_of_output
 
+    def features_to_mysql(self, features):
+        con = pymysql.connect(user='root', password='picanha', database='features')
+        cur = con.cursor()
+        for line in features:
+            cur.execute("INSERT INTO hourly VALUES (null, %i, %i, %s, %s)", (line['device_id'], line['interval'], self.feature_class, line))
 
 class CarFeatureExtractor(BaseFeatureExtractor):
+
+    self.feature_class = 'car'
 
     def parse_raw_stream(self, raw_data):
         """generator of a data dictionary from each string of raw data"""
@@ -84,8 +95,14 @@ class CarFeatureExtractor(BaseFeatureExtractor):
 def parse_cl_args():
     parser = argparse.ArgumentParser(description='print dictionary of features from stream of torque and temperature data')
     parser.add_argument('--interval', '-i', choices=['hour', 'day'], default='hour')
-    return parser.parse_args(sys.argv[1:]).interval
+    parser.add_argument('--to', '-t', choices=['mysql', 'stdout'], default='stdout')
+    return parser.parse_args(sys.argv[1:])
 
 if __name__ == '__main__':
-    feature_extractor = CarFeatureExtractor(interval_type=parse_cl_args(), out_file=sys.stdout)
-    feature_extractor.process_parsed_stream(feature_extractor.parse_raw_stream(sys.stdin))
+    args = parse_cl_args()
+    feature_extractor = CarFeatureExtractor(interval_type=args.interval)
+    features = [feature for feature in feature_extractor.process_parsed_stream(feature_extractor.parse_raw_stream(sys.stdin))]
+        if args.to == 'stdout':
+            iprint >> sys.stdout, features
+        elif args.to == 'mysql':
+            features_to_mysql(features)
