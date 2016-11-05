@@ -19,10 +19,9 @@ import json
 import sys
 import time
 
+import features
 import pandas as pd
 import pymysql
-
-import features
 
 
 class BaseFeatureExtractor(object):
@@ -38,16 +37,16 @@ class BaseFeatureExtractor(object):
 
     def publish(self, username=None, password=None, target='stdout'):
         if target == 'stdout':
-            print >> sys.stdout, self.features
+            sys.stdout.write(self.features)
         elif target == 'mysql':
             if args.username is None or args.password is None:
-                print >> sys.stdout, self.features
-                print >> sys.stdout, 'Did not write to mysql. Enter mysql username and password arguments to parse_torque_temp'
+                sys.stdout.write(self.features)
+                sys.stdout.write('Did not write to mysql. Enter mysql username and password arguments to parse_torque_temp')
             else:
                 con = pymysql.connect(user=username, password=password, database='features')
                 cur = con.cursor()
                 for line in self.features:
-                    print line
+                    print(line)
                     cur.execute("INSERT INTO hourly VALUES (null, %s, %s, %s, %s)",
                                 (line['device_id'], time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(line['epoch_time'])),
                                  self.feature_class, str(line)))

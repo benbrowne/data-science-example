@@ -96,7 +96,7 @@ class SimpleStreamGenerator(object):
                    self.start_epoch + seconds,
                    self.data_type,
                    self.generate_data()]
-            print >> self.output_destination, self.field_delimiter.join([str(e) for e in row])
+            print(self.field_delimiter.join([str(e) for e in row]), file=self.output_destination)
 
     def generate_data(self):
         """Generate JSON data
