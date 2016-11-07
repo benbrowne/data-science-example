@@ -46,10 +46,9 @@ class BaseFeatureExtractor(object):
                 con = pymysql.connect(user=username, password=password, database='features')
                 cur = con.cursor()
                 for line in self.features:
-                    print(line)
-                    cur.execute("INSERT INTO hourly VALUES (null, %s, %s, %s, %s)",
-                                (line['device_id'], time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(line['epoch_time'])),
-                                 self.feature_class, str(line)))
+                    line_to_write = (line['device_id'], line['time_stamp'], self.feature_class, str(line['feature_data']))
+                    print(line_to_write)
+                    cur.execute("INSERT INTO hourly VALUES (null, %s, %s, %s, %s)", line_to_write)
                 con.commit()
 
     @abc.abstractproperty
@@ -71,13 +70,14 @@ class BaseFeatureExtractor(object):
 
     def process_parsed_stream(self, parsed_stream):
         """Takes iterator of data dictionaries. Returns features, one line per time interval"""
-        data_block = pd.DataFrame()
         for device_id, device_stream in itertools.groupby(parsed_stream, self.get_device_id):
             for interval, interval_stream in itertools.groupby(device_stream, self.get_interval):
+                data_block = pd.DataFrame()
                 for line in interval_stream:
                     data_block = data_block.append(pd.DataFrame.from_records([line]))
-                line_of_output = {'device_id': device_id, 'interval': interval, 'epoch_time': data_block['epoch_time'].max()}
-                line_of_output.update({key: features.feature_input[key](data_block) for key in features.feature_input})
+                    asctime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data_block['epoch_time'].max()))
+                line_of_output = {'device_id': device_id,  'time_stamp': asctime}
+                line_of_output.update({'feature_data': {key: features.feature_input[key](data_block) for key in features.feature_input}})
                 yield line_of_output
 
 

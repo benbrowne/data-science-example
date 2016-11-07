@@ -3,15 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>devices</title>
+    <style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+</style>
 </head>
 <body>
 These are the devices. Click on one for more info:
+<br><table>
+    <tr><th>device</th><th>data_points</th></tr>
+    {%for device in device_list:%}
+    <tr> <td> <a href="/devices/{{device[0]}}">{{device[0]}}</a></td><td>{{device[1]}}</td></tr>
+    {%endfor%}
+</table>
 
-<ul>
-    {% for device in device_list:%}
-    <li><a href="/devices/{{device}}">{{device}}</a></li>
-    {% endfor %}
-</ul>
 
+<a href="/">back to homepage</a>
 </body>
 </html>
